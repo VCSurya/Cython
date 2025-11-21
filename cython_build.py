@@ -1,44 +1,111 @@
 import os
+
 import shutil
-from setuptools import setup
+
+from setuptools import setup, Extension
+
 from Cython.Build import cythonize
+ 
+# === 1. Define Python files and their desired compiled module names ===
 
-# === 1. Files to compile ===
-files_to_compile = [
-    "validation"
-]
+# Format →  "source_py_name": "compiled_module_name"
 
-# === 2. Rename .py to .pyx ===
-for file in files_to_compile:
-    py_file = f"{file}.py"
-    pyx_file = f"{file}.pyx"
+modules = {
+
+    "main": "tgpl_model",   # Compile main.py → mainbos.so/pyd
+
+    # "file2": "securemod2",  # Add more if you want
+
+}
+ 
+# === 2. Convert .py → .pyx ===
+
+for src, mod in modules.items():
+
+    py_file = f"{src}.py"
+
+    pyx_file = f"{src}.pyx"
+ 
     if os.path.exists(py_file):
+
         print(f"Renaming {py_file} → {pyx_file}")
+
         os.rename(py_file, pyx_file)
 
-# === 3. Compile using Cython ===
+    else:
+
+        raise FileNotFoundError(f"❌ Error: {py_file} not found!")
+ 
+# === 3. Prepare Cython Extensions with custom names ===
+
+extensions = []
+
+for src, mod in modules.items():
+
+    extensions.append(
+
+        Extension(
+
+            name=mod,                 # This becomes PyInit_<mod>
+
+            sources=[f"{src}.pyx"],   # Use original source filename
+
+        )
+
+    )
+ 
+# === 4. Run Cython build ===
+
 setup(
+
     ext_modules=cythonize(
-        [f"{f}.pyx" for f in files_to_compile],
-        compiler_directives={'language_level': "3"},
+
+        extensions,
+
+        compiler_directives={"language_level": "3"},
+
         build_dir="build"
+
     ),
+
     script_args=["build_ext", "--inplace"]
+
 )
+ 
+# === 5. Cleanup ===
 
-# === 4. Cleanup ===
-for file in files_to_compile:
-    # Delete .pyx
-    pyx_file = f"{file}.pyx"
+for src, mod in modules.items():
+
+    # Remove temporary PYX
+
+    pyx_file = f"{src}.pyx"
+
     if os.path.exists(pyx_file):
+
         os.remove(pyx_file)
-    # Delete generated .c files
-    c_file = f"{file}.c"
+ 
+    # Remove generated C file
+
+    c_file = f"{src}.c"
+
     if os.path.exists(c_file):
+
         os.remove(c_file)
+ 
+# Remove build directory
 
-# Delete build folder
 if os.path.exists("build"):
-    shutil.rmtree("build")
 
-print("\n✅ Compilation complete. Only .pyd files remain.")
+    shutil.rmtree("build")
+ 
+print("\n✅ Compilation complete!")
+
+print("🎉 Compiled modules created:")
+
+for src, mod in modules.items():
+
+    print(f"   → {mod}.so / {mod}.pyd")
+
+print("You can now safely import using the new module name.")
+
+ 
