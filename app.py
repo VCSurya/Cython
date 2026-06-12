@@ -8,6 +8,7 @@ from io import BytesIO
 import pandas as pd
 import ssl
 import os
+from dotenv import load_dotenv
 
 load_dotenv()
 
