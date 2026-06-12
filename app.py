@@ -7,6 +7,9 @@ from openai import OpenAI
 from io import BytesIO
 import pandas as pd
 import ssl
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -19,15 +22,7 @@ CORS(
 
 SQL = None
 
-@app.after_request
-def after_request(response):
-    response.headers["Access-Control-Allow-Origin"] = "https://020d2618trial.launchpad.cfapps.us10.hana.ondemand.com"
-    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    response.headers["Access-Control-Allow-Private-Network"] = "true"
-    return response
-
-client = OpenAI(api_key="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")
+client = OpenAI(os.getenv("OPENAI_API_KEY"))
 
 
 def call_llm_get_sql(user_query):
