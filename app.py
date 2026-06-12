@@ -23,7 +23,7 @@ CORS(
 
 SQL = None
 
-client = OpenAI(os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=str(os.getenv("OPENAI_API_KEY")))
 
 
 def call_llm_get_sql(user_query):
